@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Krishi Precision Dashboard</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f4f9ff;
+      color: #2c3e50;
+    }
+    header {
+      background: linear-gradient(135deg, #007acc, #00c6ff);
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.8em;
+      font-weight: 600;
+    }
+    header p {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      padding: 25px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h2 {
+      margin-bottom: 15px;
+      color: #007acc;
+      font-size: 1.2em;
+    }
+    .card .value {
+      font-size: 2em;
+      font-weight: 600;
+    }
+    
+    /* NEW: ML Prediction Section */
+    .ml-section {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      color: white;
+      border-radius: 14px;
+      padding: 30px;
+      margin: 40px 0;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .ml-section h2 {
+      margin: 0 0 20px 0;
+      font-size: 1.8em;
+    }
+    .prediction-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .prediction-card {
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .prediction-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1em;
+    }
+    .prediction-card .pred-value {
+      font-size: 1.5em;
+      font-weight: 600;
+    }
+    .recommendations {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: left;
+    }
+    .recommendations h4 {
+      margin: 0 0 10px 0;
+    }
+    .recommendations ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    canvas {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 40px;
+    }
+    footer {
+      background: #007acc;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9em;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-good { background: #27ae60; }
+    .status-warning { background: #f39c12; }
+    .status-critical { background: #e74c3c; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>🌱 Krishi Precision Dashboard</h1>
+  <p>Smart Irrigation Monitoring | AI-Powered Irrigation Recommendations</p>
+</header>
+<div class="container">
+  <!-- Live Data Cards -->
+  <div class="cards">
+    <div class="card">
+      <h2>Soil Moisture</h2>
+      <div id="soilMoisture" class="value">--%</div>
+    </div>
+    <div class="card">
+      <h2>Temperature</h2>
+      <div id="temperature" class="value">--°C</div>
+    </div>
+    <div class="card">
+      <h2>Humidity</h2>
+      <div id="humidity" class="value">--%</div>
+    </div>
+    <div class="card">
+      <h2>Light Intensity</h2>
+      <div id="lightIntensity" class="value">--</div>
+    </div>
+    <div class="card">
+      <h2>Raining</h2>
+      <div id="rainStatus" class="value">--</div>
+    </div>
+  </div>
+
+  <!-- NEW: AI-Powered Irrigation Recommendations -->
+  <div class="ml-section">
+    <h2>🤖 AI Irrigation Assistant</h2>
+    <p>Machine Learning-powered irrigation recommendations based on real-time conditions</p>
+    
+    <div class="prediction-cards">
+      <div class="prediction-card">
+        <h3>Irrigation Needed</h3>
+        <div id="irrigationNeeded" class="pred-value">
+          <span class="status-indicator status-good"></span>Analyzing...
+        </div>
+      </div>
+      <div class="prediction-card">
+        <h3>Recommended Duration</h3>
+        <div id="irrigationDuration" class="pred-value">-- min</div>
+      </div>
+      <div class="prediction-card">
+        <h3>AI Confidence</h3>
+        <div id="confidence" class="pred-value">--%</div>
+      </div>
+      <div class="prediction-card">
+        <h3>Water Savings</h3>
+        <div id="waterSavings" class="pred-value">-- L</div>
+      </div>
+    </div>
+    
+    <div class="recommendations">
+      <h4>💡 Smart Recommendations:</h4>
+      <ul id="recommendationsList">
+        <li>Gathering sensor data for analysis...</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Graphs -->
+  <h2>📊 Data Trends</h2>
+  <canvas id="moistureChart" height="120"></canvas>
+  <canvas id="tempChart" height="120"></canvas>
+  <canvas id="humidityChart" height="120"></canvas>
+</div>
+<footer>
+  &copy; 2025 Krishi Precision Irrigation System - Powered by Machine Learning
+</footer>
+
+<!-- Firebase + JS -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getDatabase, ref, onChildAdded } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyB9CjbnA8IbaGDtFzMhTqjJudWHzymv37o",
+    authDomain: "precision-irrigation-dec40.firebaseapp.com",
+    databaseURL: "https://precision-irrigation-dec40-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "precision-irrigation-dec40",
+    storageBucket: "precision-irrigation-dec40.firebasestorage.app",
+    messagingSenderId: "766426949461",
+    appId: "1:766426949461:web:62490bc75f190be6b4f1dc",
+    measurementId: "G-WZMPCT8FQ5"
+  };
+  
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const sensorRef = ref(database, 'sensorData');
+  
+  // Chart setup
+  const labels = [];
+  const moistureData = [];
+  const tempData = [];
+  const humidityData = [];
+  
+  const moistureChart = new Chart(document.getElementById('moistureChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: "Soil Moisture (%)", data: moistureData, borderColor: "#007acc", fill: false }] },
+    options: { responsive: true, plugins: { legend: { display: true } } }
+  });
+  
+  const tempChart = new Chart(document.getElementById('tempChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: "Temperature (°C)", data: tempData, borderColor: "#e67e22", fill: false }] },
+    options: { responsive: true }
+  });
+  
+  const humidityChart = new Chart(document.getElementById('humidityChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: "Humidity (%)", data: humidityData, borderColor: "#27ae60", fill: false }] },
+    options: { responsive: true }
+  });
+
+  // NEW: ML Prediction Function
+  async function getMLPrediction(sensorData) {
+    // Simulate ML prediction (replace with actual API call)
+    const mockPrediction = {
+      irrigation_needed: sensorData.soil_moisture < 40,
+      duration_minutes: Math.max(5, Math.round((40 - sensorData.soil_moisture) * 0.5 + Math.random() * 5)),
+      confidence: Math.round(75 + Math.random() * 20),
+      recommendations: generateRecommendations(sensorData)
+    };
+    
+    // For demo: simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return mockPrediction;
+  }
+
+  function generateRecommendations(data) {
+    const recs = [];
+    if (data.soil_moisture < 20) {
+      recs.push("Critical: Soil moisture very low - immediate irrigation recommended");
+    } else if (data.soil_moisture < 40) {
+      recs.push("Soil moisture low - irrigation recommended within 2 hours");
+    } else {
+      recs.push("Soil moisture optimal - no immediate irrigation needed");
+    }
+    
+    if (data.temperature > 32) {
+      recs.push("High temperature detected - consider additional watering");
+    }
+    
+    if (data.isRaining) {
+      recs.push("Rain detected - reduce irrigation duration by 30%");
+    }
+    
+    recs.push(`Optimal irrigation time: Early morning (6-8 AM) for maximum efficiency`);
+    return recs;
+  }
+
+  function updateMLPredictions(data) {
+    getMLPrediction(data).then(prediction => {
+      // Update irrigation status
+      const statusEl = document.getElementById('irrigationNeeded');
+      const statusClass = prediction.irrigation_needed ? 'status-critical' : 'status-good';
+      const statusText = prediction.irrigation_needed ? 'Yes' : 'No';
+      statusEl.innerHTML = `<span class="status-indicator ${statusClass}"></span>${statusText}`;
+      
+      // Update duration
+      document.getElementById('irrigationDuration').textContent = prediction.duration_minutes + ' min';
+      
+      // Update confidence
+      document.getElementById('confidence').textContent = prediction.confidence + '%';
+      
+      // Calculate water savings (mock calculation)
+      const waterSavings = Math.round(prediction.duration_minutes * 2.3); // L per minute
+      document.getElementById('waterSavings').textContent = waterSavings + ' L';
+      
+      // Update recommendations
+      const recList = document.getElementById('recommendationsList');
+      recList.innerHTML = prediction.recommendations.map(rec => `<li>${rec}</li>`).join('');
+    });
+  }
+
+  // Live Firebase Updates
+  onChildAdded(sensorRef, (snapshot) => {
+    const data = snapshot.val();
+    const timestamp = new Date().toLocaleTimeString();
+    
+    // Update Live Cards
+    document.getElementById('soilMoisture').textContent = data.soil_moisture ? data.soil_moisture + "%" : "--%";
+    document.getElementById('temperature').textContent = data.temperature ? data.temperature + "°C" : "--°C";
+    document.getElementById('humidity').textContent = data.humidity ? data.humidity + "%" : "--%";
+    document.getElementById('lightIntensity').textContent = data.lightIntensity ?? "--";
+    document.getElementById('rainStatus').textContent = data.isRaining ? "Yes" : "No";
+    
+    // NEW: Update ML Predictions
+    if (data.soil_moisture && data.temperature && data.humidity) {
+      updateMLPredictions(data);
+    }
+    
+    // Push into charts
+    labels.push(timestamp);
+    moistureData.push(data.soil_moisture ?? 0);
+    tempData.push(data.temperature ?? 0);
+    humidityData.push(data.humidity ?? 0);
+    
+    // Limit data points (last 10 only)
+    if (labels.length > 10) {
+      labels.shift();
+      moistureData.shift();
+      tempData.shift();
+      humidityData.shift();
+    }
+    
+    // Update charts
+    moistureChart.update();
+    tempChart.update();
+    humidityChart.update();
+  });
+</script>
+</body>
+</html>
